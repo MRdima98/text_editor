@@ -32,17 +32,26 @@ func main() {
 
 	wid, _ := xproto.NewWindowId(X)
 	screen := xproto.Setup(X).DefaultScreen(X)
+	context, err := xproto.NewGcontextId(X)
+	xproto.CreateGC(
+		X,
+		context,
+		xproto.Drawable(screen.Root),
+		xproto.GcForeground|xproto.GcGraphicsExposures,
+		[]uint32{screen.BlackPixel, 0},
+	)
 	xproto.CreateWindow(X, screen.RootDepth, wid, screen.Root,
-		0, 0, 600, 500, 0,
+		0, 0, 500, 500, 10,
 		xproto.WindowClassInputOutput, screen.RootVisual,
 		xproto.CwBackPixel|xproto.CwEventMask,
 		[]uint32{ // values must be in the order defined by the protocol
-			0xffffffff,
+			screen.WhitePixel,
 			xproto.EventMaskStructureNotify |
-				xproto.EventMaskKeyPress |
+				xproto.EventMaskExposure |
 				xproto.EventMaskKeyRelease})
 
 	xproto.MapWindow(X, wid)
+
 	for {
 		ev, xerr := X.WaitForEvent()
 		if ev == nil && xerr == nil {
@@ -51,8 +60,23 @@ func main() {
 		}
 
 		if ev != nil {
-			fmt.Printf("Event: %s\n", ev)
-			fmt.Printf("Event: %s\n", parseKeyStrokes(ev.String()))
+			// fmt.Printf("Event: %s\n", ev)
+			fmt.Println("Drawing")
+			// fmt.Printf("Event: %s\n", parseKeyStrokes(ev.String()))
+			// key := parseKeyStrokes(ev.String())
+			key := "1"
+			var x, y int16
+			x += 10
+			y += 10
+			xproto.ImageText8(
+				X,
+				uint8(len(key)),
+				xproto.Drawable(wid),
+				context,
+				x,
+				y,
+				key,
+			)
 		}
 		if xerr != nil {
 			fmt.Printf("Error: %s\n", xerr)
