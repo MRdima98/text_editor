@@ -2,9 +2,26 @@ package main
 
 import (
 	"fmt"
-	"github.com/BurntSushi/xgb"
-	"github.com/BurntSushi/xgb/xproto"
+	"regexp"
+	"strconv"
+
+	"github.com/jezek/xgb"
+	"github.com/jezek/xgb/xproto"
 )
+
+func parseKeyStrokes(stroke string) string {
+	r := regexp.MustCompile(`-?\d+(\.\d+)?`)
+	allNums := r.FindAllString(stroke, 10)
+	fmt.Printf("This is my array: %v\n\n", allNums)
+
+	asciCode, err := strconv.Atoi(allNums[1])
+
+	if err != nil {
+		return "CANT DO IT"
+	}
+
+	return fromKeyCodeToString(asciCode)
+}
 
 func main() {
 	X, err := xgb.NewConn()
@@ -16,7 +33,7 @@ func main() {
 	wid, _ := xproto.NewWindowId(X)
 	screen := xproto.Setup(X).DefaultScreen(X)
 	xproto.CreateWindow(X, screen.RootDepth, wid, screen.Root,
-		0, 0, 500, 500, 0,
+		0, 0, 600, 500, 0,
 		xproto.WindowClassInputOutput, screen.RootVisual,
 		xproto.CwBackPixel|xproto.CwEventMask,
 		[]uint32{ // values must be in the order defined by the protocol
@@ -35,9 +52,38 @@ func main() {
 
 		if ev != nil {
 			fmt.Printf("Event: %s\n", ev)
+			fmt.Printf("Event: %s\n", parseKeyStrokes(ev.String()))
 		}
 		if xerr != nil {
 			fmt.Printf("Error: %s\n", xerr)
 		}
+	}
+}
+
+func fromKeyCodeToString(code int) string {
+	switch code {
+	case 10:
+		return "1"
+	case 11:
+		return "2"
+	case 12:
+		return "3"
+	case 13:
+		return "4"
+	case 14:
+		return "5"
+	case 15:
+		return "6"
+	case 16:
+		return "7"
+	case 17:
+		return "8"
+	case 18:
+		return "9"
+	case 19:
+		return "0"
+
+	default:
+		return ""
 	}
 }
