@@ -38,20 +38,21 @@ func main() {
 		context,
 		xproto.Drawable(screen.Root),
 		xproto.GcForeground|xproto.GcGraphicsExposures,
-		[]uint32{screen.BlackPixel, 0},
+		[]uint32{screen.WhitePixel, screen.BlackPixel},
 	)
 	xproto.CreateWindow(X, screen.RootDepth, wid, screen.Root,
 		0, 0, 500, 500, 10,
 		xproto.WindowClassInputOutput, screen.RootVisual,
 		xproto.CwBackPixel|xproto.CwEventMask,
 		[]uint32{ // values must be in the order defined by the protocol
-			screen.WhitePixel,
+			screen.BlackPixel,
 			xproto.EventMaskStructureNotify |
 				xproto.EventMaskExposure |
 				xproto.EventMaskKeyRelease})
 
 	xproto.MapWindow(X, wid)
 
+	var x, y int16
 	for {
 		ev, xerr := X.WaitForEvent()
 		if ev == nil && xerr == nil {
@@ -64,10 +65,10 @@ func main() {
 			fmt.Println("Drawing")
 			// fmt.Printf("Event: %s\n", parseKeyStrokes(ev.String()))
 			// key := parseKeyStrokes(ev.String())
-			key := "1"
-			var x, y int16
+			key := "ACAB"
 			x += 10
 			y += 10
+			fmt.Println(x, y)
 			xproto.ImageText8(
 				X,
 				uint8(len(key)),
