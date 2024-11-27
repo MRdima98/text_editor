@@ -11,14 +11,16 @@ import (
 )
 
 const (
-	SHIFT  = "shift"
-	NO_KEY = "noKey"
+	SHIFT     = "shift"
+	NO_KEY    = "noKey"
+	FONT_SIZE = "lucidasans-24"
+	Y_BOUND   = 450
 )
 
 func parseKeyStrokes(stroke string, uppercase bool) string {
 	r := regexp.MustCompile(`-?\d+(\.\d+)?`)
 	allNums := r.FindAllString(stroke, 10)
-	fmt.Printf("This is my array: %v\n\n", allNums)
+	// fmt.Printf("This is my array: %v\n\n", allNums)
 
 	asciCode, err := strconv.Atoi(allNums[1])
 
@@ -30,6 +32,7 @@ func parseKeyStrokes(stroke string, uppercase bool) string {
 }
 
 func main() {
+	var wholeText string
 	X, err := xgb.NewConn()
 	if err != nil {
 		fmt.Println(err)
@@ -39,13 +42,30 @@ func main() {
 	wid, _ := xproto.NewWindowId(X)
 	screen := xproto.Setup(X).DefaultScreen(X)
 	context, err := xproto.NewGcontextId(X)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	font, err := xproto.NewFontId(X)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	xproto.OpenFont(X, font, uint16(len(FONT_SIZE)), FONT_SIZE)
+	// _, xerr := X.WaitForEvent()
+	// fmt.Println("Font errs: ", xerr)
+
 	xproto.CreateGC(
 		X,
 		context,
 		xproto.Drawable(screen.Root),
-		xproto.GcForeground|xproto.GcGraphicsExposures,
-		[]uint32{screen.WhitePixel, screen.BlackPixel},
+		xproto.GcForeground|xproto.GcBackground|xproto.GcFont,
+		[]uint32{screen.WhitePixel, screen.BlackPixel, uint32(font)},
 	)
+	// _, xerr = X.WaitForEvent()
+	// fmt.Println("GC err", xerr)
+
 	xproto.CreateWindow(X, screen.RootDepth, wid, screen.Root,
 		0, 0, 500, 500, 10,
 		xproto.WindowClassInputOutput, screen.RootVisual,
@@ -58,9 +78,11 @@ func main() {
 				xproto.EventMaskKeyRelease})
 
 	xproto.MapWindow(X, wid)
+	// _, xerr = X.WaitForEvent()
+	// fmt.Println("Create window", xerr)
 
 	var x int16
-	var y int16 = 10
+	var y int16 = 20
 	uppercase := false
 
 	for {
@@ -70,13 +92,40 @@ func main() {
 			return
 		}
 
+		if ev != nil {
+			fmt.Println(ev.String())
+		}
+
+		if strings.Contains(ev.String(), "ConfigureNotify") || strings.Contains(ev.String(), "Expose") {
+			fmt.Println("WE ARE RESIZING")
+			fmt.Println(wholeText)
+			for _, el := range wholeText {
+				x += 20
+				if y > Y_BOUND {
+					y += 20
+				}
+				key := string(el)
+				fmt.Println(key)
+				xproto.ImageText8(
+					X,
+					uint8(len(key)),
+					xproto.Drawable(wid),
+					context,
+					x,
+					y,
+					key,
+				)
+			}
+		}
+
 		if strings.Contains(ev.String(), "KeyPress") {
 			key := parseKeyStrokes(ev.String(), uppercase)
 			if key == SHIFT {
 				uppercase = true
 			}
 			if key != NO_KEY && key != SHIFT {
-				x += 10
+				x += 20
+				wholeText += key
 				xproto.ImageText8(
 					X,
 					uint8(len(key)),
@@ -95,30 +144,11 @@ func main() {
 			if key == SHIFT {
 				uppercase = false
 			}
-			if x > 480 {
+			if x > 450 {
 				x = 0
-				y += 15
+				y += 30
 			}
-			fmt.Println(x)
 		}
-
-		// if ev != nil {
-		// 	// fmt.Printf(ev.String())
-		// 	key := parseKeyStrokes(ev.String(), uppercase)
-		// 	if key != NO_KEY {
-		// 		x += 10
-		// 		xproto.ImageText8(
-		// 			X,
-		// 			uint8(len(key)),
-		// 			xproto.Drawable(wid),
-		// 			context,
-		// 			x,
-		// 			y,
-		// 			key,
-		// 		)
-		//
-		// 	}
-		// }
 
 		if xerr != nil {
 			fmt.Printf("Error: %s\n", xerr)
