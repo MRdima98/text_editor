@@ -7,3 +7,10 @@ We are writing a text editor from *scratch*.
 Turns out there is a [Go implementation of XCB](https://github.com/jezek/xgb).
 I like freebies as the next guy so don't mind me. Saved from C today, but one day 
 I will go back to formula.
+
+## Features
+[ ] Type each letter
+[ ] Cursor
+[ ] Special combinations (copy paste)
+[ ] Vim mode (optional)
+[ ] Basic LSP server (optional)
