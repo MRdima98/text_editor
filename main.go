@@ -11,10 +11,13 @@ import (
 )
 
 const (
-	SHIFT     = "shift"
-	NO_KEY    = "noKey"
-	FONT_SIZE = "lucidasans-24"
-	Y_BOUND   = 450
+	SHIFT          = "shift"
+	NO_KEY         = "noKey"
+	FONT_SIZE      = "lucidasans-24"
+	X_BOUND        = 450
+	NEXT_LINE      = 40
+	NEXT_LETTER    = 30
+	STARTING_POINT = 50
 )
 
 func parseKeyStrokes(stroke string, uppercase bool) string {
@@ -99,10 +102,13 @@ func main() {
 		if strings.Contains(ev.String(), "ConfigureNotify") || strings.Contains(ev.String(), "Expose") {
 			fmt.Println("WE ARE RESIZING")
 			fmt.Println(wholeText)
+			x = STARTING_POINT
+			y = STARTING_POINT
 			for _, el := range wholeText {
-				x += 20
-				if y > Y_BOUND {
-					y += 20
+				x += NEXT_LETTER
+				if x > X_BOUND {
+					x = STARTING_POINT
+					y += NEXT_LINE
 				}
 				key := string(el)
 				fmt.Println(key)
@@ -124,7 +130,7 @@ func main() {
 				uppercase = true
 			}
 			if key != NO_KEY && key != SHIFT {
-				x += 20
+				x += NEXT_LETTER
 				wholeText += key
 				xproto.ImageText8(
 					X,
@@ -144,9 +150,9 @@ func main() {
 			if key == SHIFT {
 				uppercase = false
 			}
-			if x > 450 {
-				x = 0
-				y += 30
+			if x > X_BOUND {
+				x = STARTING_POINT
+				y += NEXT_LINE
 			}
 		}
 
