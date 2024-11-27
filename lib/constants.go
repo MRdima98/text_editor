@@ -4,6 +4,7 @@ const (
 	SHIFT          = "shift"
 	TAB            = "tab"
 	SPACE          = " "
+	CURSOR         = "|"
 	NO_KEY         = "noKey"
 	FONT_SIZE      = "lucidasans-24"
 	X_BOUND        = 450

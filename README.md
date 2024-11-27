@@ -10,7 +10,8 @@ I will go back to formula.
 
 ## Features
 [ ] Type each letter
-[ ] Cursor
+[ ] Delete text
+[x] Cursor
 [ ] Special combinations (copy paste)
 [ ] Vim mode (optional)
 [ ] Basic LSP server (optional)

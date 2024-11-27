@@ -53,8 +53,8 @@ func main() {
 
 	xproto.MapWindow(X, wid)
 
-	var x int16
-	var y int16 = 20
+	var x int16 = lib.STARTING_POINT
+	var y int16 = lib.STARTING_POINT
 	uppercase := false
 
 	for {
@@ -66,6 +66,15 @@ func main() {
 
 		if ev != nil {
 			fmt.Println(ev.String())
+			xproto.ImageText8(
+				X,
+				uint8(len(lib.CURSOR)),
+				xproto.Drawable(wid),
+				context,
+				x+lib.NEXT_LETTER,
+				y,
+				lib.CURSOR,
+			)
 		}
 
 		if strings.Contains(ev.String(), "ConfigureNotify") || strings.Contains(ev.String(), "Expose") {
